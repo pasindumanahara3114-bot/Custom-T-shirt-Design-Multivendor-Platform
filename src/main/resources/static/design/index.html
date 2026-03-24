@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>T-Shirt Design Studio</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+    <style>
+        :root{
+          --bg1:#0f172a;          /* slate-900 */
+          --bg2:#111827;          /* gray-900 */
+          --card:#0b1224cc;       /* glass */
+          --stroke:#ffffff22;
+          --text:#e5e7eb;
+          --muted:#a7b0c0;
+          --accent:#7c3aed;       /* violet */
+          --accent2:#06b6d4;      /* cyan */
+          --good:#22c55e;
+          --warn:#f59e0b;
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+          margin:0;
+          min-height:100vh;
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+          color:var(--text);
+          background:
+            radial-gradient(1200px 800px at 20% 10%, #1d4ed833, transparent 60%),
+            radial-gradient(1000px 700px at 80% 20%, #7c3aed33, transparent 60%),
+            linear-gradient(135deg, var(--bg1), var(--bg2));
+        }
+
+        .topbar{
+          padding:18px 22px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:14px;
+          border-bottom:1px solid var(--stroke);
+          background: linear-gradient(90deg, #0b1224aa, #0b122455);
+          backdrop-filter: blur(10px);
+          position: sticky;
+          top:0;
+          z-index:10;
+        }
+
+        .brand{
+          display:flex; align-items:center; gap:12px;
+        }
+        .logoDot{
+          width:38px; height:38px; border-radius:12px;
+          background: linear-gradient(135deg, var(--accent), var(--accent2));
+          box-shadow: 0 10px 30px #00000055;
+        }
+        .titleWrap{ line-height:1.15; }
+        .titleWrap h1{
+          margin:0;
+          font-size:18px;
+          letter-spacing:.2px;
+        }
+        .titleWrap p{
+          margin:2px 0 0;
+          font-size:12px;
+          color:var(--muted);
+        }
+
+        .badges{
+          display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+          justify-content:flex-end;
+        }
+        .badge{
+          padding:8px 10px;
+          border:1px solid var(--stroke);
+          border-radius:999px;
+          background:#0b1224aa;
+          font-size:12px;
+          color:var(--text);
+          display:flex; gap:8px; align-items:center;
+          backdrop-filter: blur(10px);
+        }
+        .pill{
+          padding:4px 8px;
+          border-radius:999px;
+          font-size:11px;
+          background: #ffffff14;
+          border:1px solid var(--stroke);
+          color:var(--text);
+        }
+
+        .layout{
+          padding:18px;
+          display:grid;
+          grid-template-columns: 360px minmax(320px, 1fr) 260px;
+          gap:16px;
+          height: calc(100vh - 78px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px){
+          .layout{ grid-template-columns: 360px 1fr; grid-template-rows:auto auto; height:auto; }
+          .rightPanel{ grid-column: 1 / -1; }
+        }
+        @media (max-width: 760px){
+          .layout{ grid-template-columns: 1fr; }
+          .leftPanel{ order:2; }
+          .canvasPanel{ order:1; }
+          .rightPanel{ order:3; }
+        }
+
+        .card{
+          background: var(--card);
+          border:1px solid var(--stroke);
+          border-radius:18px;
+          box-shadow: 0 10px 40px #00000055;
+          backdrop-filter: blur(14px);
+          overflow:hidden;
+        }
+        .cardHeader{
+          padding:14px 14px 10px;
+          border-bottom:1px solid var(--stroke);
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px;
+        }
+        .cardHeader h2{
+          margin:0;
+          font-size:14px;
+          letter-spacing:.2px;
+          color:#f3f4f6;
+        }
+        .cardBody{ padding:14px; }
+
+        /* ✅ Make option texts clearer on dark background */
+        .hint{
+          margin:6px 0 10px;
+          font-size:13px;                /* slightly bigger */
+          color:#d1d5db;                 /* brighter than muted */
+          line-height:1.45;
+        }
+
+        .groupTitle{
+          margin:10px 0 8px;
+          font-size:12px;
+          color:#dbeafe;
+          letter-spacing:.3px;
+          text-transform:uppercase;
+        }
+
+        .grid2{
+          display:grid;
+          grid-template-columns: 1fr 1fr;
+          gap:10px;
+        }
+
+        .btn{
+          appearance:none;
+          border:none;
+          cursor:pointer;
+          padding:10px 12px;
+          border-radius:12px;
+          font-weight:700;
+          color:#fff;
+          background: linear-gradient(135deg, var(--accent), #4f46e5);
+          box-shadow: 0 10px 30px #00000055;
+          transition: transform .08s ease, filter .15s ease;
+        }
+        .btn:hover{ filter: brightness(1.08); }
+        .btn:active{ transform: translateY(1px); }
+
+        .btnGhost{
+          background: #ffffff10;
+          border:1px solid var(--stroke);
+          color: var(--text);
+          box-shadow:none;
+        }
+        .btnGhost:hover{ filter: brightness(1.12); }
+
+        .btnGood{
+          background: linear-gradient(135deg, var(--good), #16a34a);
+        }
+        .btnWarn{
+          background: linear-gradient(135deg, var(--warn), #f97316);
+        }
+
+        /* ✅ Bigger, clearer inputs */
+        .field{
+          width:100%;
+          padding:12px 12px;             /* bigger */
+          border-radius:12px;
+          border:1px solid var(--stroke);
+          background:#0b1224aa;
+          color:var(--text);
+          outline:none;
+          font-size:14px;                /* bigger */
+        }
+        select.field option{ color:#0b1224; } /* helps some browsers; select text remains visible */
+
+        .row{
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+          padding:12px 12px;             /* bigger */
+          border-radius:14px;
+          border:1px solid var(--stroke);
+          background:#0b1224aa;
+          margin-top:10px;
+        }
+        /* ✅ Make option label text brighter & bigger */
+        .row label{
+          font-size:13px;                /* bigger */
+          color:#e5e7eb;                 /* brighter */
+          display:flex; flex-direction:column; gap:4px;
+          font-weight:650;
+        }
+        .row label span{
+          font-weight:500;
+          color:#cbd5e1;                 /* brighter subtext */
+          font-size:12px;
+        }
+
+        .row input[type="color"]{
+          width:48px; height:48px;       /* slightly bigger */
+          border:none; background:transparent; padding:0;
+          cursor:pointer;
+        }
+
+        .toggle{
+          display:flex; align-items:center; gap:12px;
+          padding:12px 12px;             /* bigger */
+          border-radius:14px;
+          border:1px solid var(--stroke);
+          background:#0b1224aa;
+          margin-top:10px;
+        }
+        /* ✅ Bigger checkbox */
+        .toggle input{
+          transform: scale(1.45);
+          accent-color: var(--accent2);
+        }
+
+        .canvasWrap{
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:16px;
+          height: 100%;
+        }
+
+        /* ✅ Upscaled stage (canvas is bigger now) */
+        .canvasStage{
+          width:min(920px, 100%);        /* bigger area */
+          aspect-ratio: 520 / 640;       /* matches new canvas */
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          border-radius:18px;
+          border:1px solid var(--stroke);
+          background: radial-gradient(900px 500px at 50% 0%, #ffffff12, transparent 70%);
+          box-shadow: inset 0 0 0 1px #ffffff10;
+          padding:14px;
+        }
+        canvas{
+          border-radius:14px;
+          border: 1px solid #ffffff18;
+          background: #ffffff06;
+        }
+
+        .mini{
+          font-size:12px; color:var(--muted);
+          display:flex; align-items:center; gap:8px;
+        }
+
+        .kbd{
+          font-size:11px;
+          padding:2px 8px;
+          border-radius:999px;
+          border:1px solid var(--stroke);
+          background:#ffffff10;
+          color:#e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+<div class="topbar">
+    <div class="brand">
+        <div class="logoDot"></div>
+        <div class="titleWrap">
+            <h1>T-Shirt Design Studio</h1>
+            <p>Front/Back • Collar/No-Collar • Tint • Text • Logo • Export</p>
+        </div>
+    </div>
+
+    <div class="badges">
+        <div class="badge">View <span class="pill" id="viewBadge">FRONT</span></div>
+        <div class="badge">Style <span class="pill" id="styleBadge">NO COLLAR</span></div>
+        <div class="badge mini">Tip <span class="kbd">Select</span> object before color / delete</div>
+    </div>
+</div>
+
+<div class="layout">
+
+    <!-- Left controls -->
+    <div class="card leftPanel">
+        <div class="cardHeader">
+            <h2>Controls</h2>
+            <span class="pill">Demo Ready</span>
+        </div>
+        <div class="cardBody">
+
+            <div class="groupTitle">Shirt</div>
+
+            <label style="font-size:13px;color:#e5e7eb;margin-bottom:6px;font-weight:700;">T-shirt Style</label>
+            <select id="shirtStyle" class="field">
+                <option value="crew" selected>No Collar (Crew Neck)</option>
+                <option value="polo">Collar (Polo)</option>
+            </select>
+            <div class="hint">Switch between collar and no-collar shirt template.</div>
+
+            <div class="grid2">
+                <button class="btn btnGhost" id="frontBtn">Front Side</button>
+                <button class="btn btnGhost" id="backBtn">Back Side</button>
+            </div>
+
+            <div class="row">
+                <label>
+                    Shirt Tint
+                    <span>Applies to whole shirt</span>
+                </label>
+                <input id="shirtColor" type="color" value="#ffffff" />
+            </div>
+
+            <div class="groupTitle">Design</div>
+
+            <button class="btn" id="addTextBtn">+ Add Text</button>
+
+            <div class="row">
+                <label>
+                    Text Color
+                    <span>Select text first</span>
+                </label>
+                <input id="textColor" type="color" value="#000000" />
+            </div>
+
+            <label style="font-size:13px;color:#e5e7eb;margin-top:10px;display:block;font-weight:700;">Add Logo (PNG/JPG)</label>
+            <input id="imgUpload" class="field" type="file" accept="image/*" />
+
+            <div class="toggle">
+                <input type="checkbox" id="removeBgChk">
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                    <div style="font-size:14px;font-weight:800;color:#f3f4f6;">AI Remove Background</div>
+                    <div class="hint" style="margin:0;">If credits end, it shows a demo message.</div>
+                </div>
+            </div>
+
+            <div class="grid2" style="margin-top:10px;">
+                <button class="btn btnWarn" id="deleteBtn">Delete Selected</button>
+                <button class="btn btnGood" id="exportBtn">Export PNG</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="card canvasPanel">
+        <div class="cardHeader">
+            <h2>Canvas</h2>
+            <span class="pill">Drag • Resize • Rotate</span>
+        </div>
+        <div class="canvasWrap">
+            <div class="canvasStage">
+                <!-- ✅ Upscaled canvas -->
+                <canvas id="c" width="520" height="640"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Quick Guide -->
+    <div class="card rightPanel">
+        <div class="cardHeader">
+            <h2>Quick Guide</h2>
+            <span class="pill">Innovation</span>
+        </div>
+        <div class="cardBody">
+            <div class="hint">
+                Use these talking points:
+            </div>
+
+            <div class="row" style="margin-top:0;">
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="font-weight:800;">✅ Custom Design Tool</div>
+                    <div class="hint" style="margin:0;">Users add text, upload logos, resize & export.</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="font-weight:800;">✅ Front / Back Editing</div>
+                    <div class="hint" style="margin:0;">Separate designs stored per side.</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="font-weight:800;">✅ Collar / No Collar</div>
+                    <div class="hint" style="margin:0;">Templates switch (crew vs polo).</div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="font-weight:800;">⭐ AI Integration (Demo)</div>
+                    <div class="hint" style="margin:0;">
+                        AI removes logo background using backend API. If credits exceed, a clear message is shown.
+                    </div>
+                </div>
+            </div>
+
+            <div class="hint" style="margin-top:12px;">
+                Images required in <span class="kbd">/static/design/</span>:
+                <br>• crew-front.png • crew-back.png
+                <br>• polo-front.png • polo-back.png
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ✅ Keep design logic same; just use bigger canvas + correct scaling
+    const CANVAS_W = 520;
+    const CANVAS_H = 640;
+
+    const canvas = new fabric.Canvas('c', { preserveObjectStacking: true });
+
+    let frontDesignJSON = null;
+    let backDesignJSON = null;
+
+    let currentSide = "front";
+    let currentStyle = "crew";
+    let shirtImg = null;
+    let currentShirtColor = '#ffffff';
+
+    function updateBadges(){
+      document.getElementById('viewBadge').textContent = currentSide.toUpperCase();
+      document.getElementById('styleBadge').textContent = (currentStyle === "crew") ? "NO COLLAR" : "COLLAR";
+    }
+
+    function getShirtFile(side, style){
+      if (style === "crew") return side === "front" ? "/design/crew-front.png" : "/design/crew-back.png";
+      return side === "front" ? "/design/polo-front.png" : "/design/polo-back.png";
+    }
+
+    function applyTint(){
+      if (!shirtImg) return;
+
+      const color = currentShirtColor.toLowerCase();
+      if (color === "#ffffff") {
+        shirtImg.filters = [];
+      } else {
+        shirtImg.filters = [
+          new fabric.Image.filters.BlendColor({
+            color: currentShirtColor,
+            mode: 'multiply',
+            alpha: 0.85
+          })
+        ];
+      }
+      shirtImg.applyFilters();
+      canvas.renderAll();
+    }
+
+    function isProtectedObject(obj){ return obj === shirtImg; }
+
+    function saveCurrentSideDesign(){
+      const designObjs = canvas.getObjects().filter(o => !isProtectedObject(o));
+      const json = JSON.stringify(designObjs.map(o => o.toObject()));
+      if (currentSide === "front") frontDesignJSON = json; else backDesignJSON = json;
+    }
+
+    function restoreSideDesign(side){
+      const json = side === "front" ? frontDesignJSON : backDesignJSON;
+      if (!json) return;
+
+      const objsData = JSON.parse(json);
+      fabric.util.enlivenObjects(objsData, (enlivened) => {
+        enlivened.forEach(obj => { canvas.add(obj); obj.bringToFront(); });
+        canvas.renderAll();
+      });
+    }
+
+    function loadShirtAndRestore(side){
+      const url = getShirtFile(side, currentStyle);
+
+      fabric.Image.fromURL(url, (img) => {
+        // ✅ Scale shirt to new canvas size
+        img.scaleToWidth(CANVAS_W);
+        img.set({ left:0, top:0, selectable:false, evented:false });
+
+        shirtImg = img;
+
+        canvas.clear();
+        canvas.setWidth(CANVAS_W);
+        canvas.setHeight(CANVAS_H);
+
+        canvas.add(shirtImg);
+        canvas.sendToBack(shirtImg);
+
+        applyTint();
+        restoreSideDesign(side);
+        updateBadges();
+        canvas.renderAll();
+      });
+    }
+
+    function switchSide(side){
+      saveCurrentSideDesign();
+      currentSide = side;
+      loadShirtAndRestore(side);
+    }
+
+    // UI
+    document.getElementById('shirtStyle').onchange = (e) => {
+      currentStyle = e.target.value;
+      loadShirtAndRestore(currentSide);
+    };
+
+    document.getElementById('shirtColor').oninput = (e) => {
+      currentShirtColor = e.target.value;
+      applyTint();
+    };
+
+    document.getElementById('frontBtn').onclick = () => switchSide("front");
+    document.getElementById('backBtn').onclick  = () => switchSide("back");
+
+    document.getElementById('addTextBtn').onclick = () => {
+      const text = new fabric.Textbox('Your Text', {
+        left: (CANVAS_W / 2) - 110,
+        top: (CANVAS_H / 2) - 80,
+        width: 220,
+        fontSize: 34,          // ✅ slightly bigger for the upscaled canvas
+        fill:'#000000',
+        fontWeight:'bold'
+      });
+      canvas.add(text);
+      text.bringToFront();
+      canvas.setActiveObject(text);
+      canvas.renderAll();
+    };
+
+    document.getElementById('textColor').oninput = (e) => {
+      const obj = canvas.getActiveObject();
+      if (!obj) return;
+      if (obj.type === 'textbox' || obj.type === 'text') {
+        obj.set('fill', e.target.value);
+        canvas.renderAll();
+      }
+    };
+
+    document.getElementById('imgUpload').onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const removeBg = document.getElementById("removeBgChk").checked;
+
+      if (removeBg) {
+        try {
+          const formData = new FormData();
+          formData.append("image", file);
+
+          const response = await fetch("/api/bg-remove", { method:"POST", body:formData });
+
+          if (!response.ok) {
+            if (response.status === 402) {
+              alert("AI Background Removal: Credits limit exceeded (demo).");
+              return;
+            }
+            const t = await response.text().catch(()=>"");
+            alert("AI Background Removal failed: " + response.status + "\n" + t);
+            return;
+          }
+
+          const blob = await response.blob();
+          const imageURL = URL.createObjectURL(blob);
+
+          fabric.Image.fromURL(imageURL, (img) => {
+            img.scaleToWidth(150);   // ✅ slightly bigger on the larger canvas
+            img.set({ left:(CANVAS_W/2)-75, top:(CANVAS_H/2)-10 });
+            canvas.add(img);
+            img.bringToFront();
+            canvas.setActiveObject(img);
+            canvas.renderAll();
+          });
+        } catch(err) {
+          alert("AI Background Removal error: " + err);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          fabric.Image.fromURL(event.target.result, (img) => {
+            img.scaleToWidth(150);   // ✅ slightly bigger on the larger canvas
+            img.set({ left:(CANVAS_W/2)-75, top:(CANVAS_H/2)-10 });
+            canvas.add(img);
+            img.bringToFront();
+            canvas.setActiveObject(img);
+            canvas.renderAll();
+          });
+        };
+        reader.readAsDataURL(file);
+      }
+
+      e.target.value = "";
+    };
+
+    document.getElementById('deleteBtn').onclick = () => {
+      const obj = canvas.getActiveObject();
+      if (obj && !isProtectedObject(obj)) {
+        canvas.remove(obj);
+        canvas.discardActiveObject();
+        canvas.renderAll();
+      }
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      canvas.discardActiveObject();
+      canvas.renderAll();
+      const dataURL = canvas.toDataURL({ format:'png', quality: 1.0 });
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = `tshirt-${currentStyle}-${currentSide}.png`;
+      a.click();
+    };
+
+    // Start
+    updateBadges();
+    loadShirtAndRestore("front");
+</script>
+
+</body>
+</html>
