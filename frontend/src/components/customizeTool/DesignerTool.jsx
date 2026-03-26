@@ -66,8 +66,8 @@ function DesignerTool() {
                     borderRadius: '24px',
                     boxShadow: '0 8px 32px rgba(0,0,0,0.05)',
                     position: 'relative',
-                    overflow: 'auto',
-                    p: 2
+                    overflow: 'hidden',
+                    p: { xs: 1, md: 2 }
                 }}>
                     <DesignCanvas
                         side={side}

@@ -18,7 +18,7 @@ const DesignCanvas = ({
     const fabricRef = useRef(null);
     const shirtImgRef = useRef(null);
     const CANVAS_W = 520;
-    const CANVAS_H = 640;
+    const CANVAS_H = 480; // Reduced from 640 to fit standard screens
 
     useEffect(() => {
         const canvas = new fabric.Canvas(canvasRef.current, {
@@ -128,7 +128,10 @@ const DesignCanvas = ({
                 borderRadius: '16px',
                 overflow: 'hidden',
                 bgcolor: '#fff',
-                lineHeight: 0
+                lineHeight: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
             }}>
                 <canvas ref={canvasRef} />
             </Box>
